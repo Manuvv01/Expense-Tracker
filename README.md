@@ -7,6 +7,4 @@ git push
 
 //UPDATE CAHNGES 
 
-git fetch origin 
-git checkout main 
 git pull
