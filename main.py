@@ -1,4 +1,5 @@
 import sqlite3
+from datetime import datetime
 
 # Connect to DB
 connection = sqlite3.connect('Database for Expense tracker.db')
@@ -81,7 +82,35 @@ def userPurchases():
     else:
         print("No purchases found for this user.")
 
-userPurchases()
+def monthUserPurchases():
+    user = getUserID()
+    cursor.execute("""
+            SELECT date 
+            FROM Expenses 
+            WHERE user_id = ?
+            ORDER BY date DESC 
+            LIMIT 1
+            """, (user,))
+    recent_date_row = cursor.fetchone()
+    recent_date = datetime.strptime(recent_date_row[0], '%Y-%m-%d')
+    recent_year = recent_date.year
+    recent_month = recent_date.month
+    cursor.execute("""
+        SELECT expense_id, category_id, amount, date, description 
+        FROM Expenses 
+        WHERE user_id = ? AND strftime('%Y', date) = ? AND strftime('%m', date) = ?
+        ORDER BY date DESC
+        """, (user, str(recent_year), f"{recent_month:02}"))
+    expenses = cursor.fetchall()
+    if expenses:
+        print(f"\nPurchases made by User ID {user} in {recent_date.strftime('%B %Y')}:")
+        for expense_id, category_id, amount, date, description in expenses:
+            print(f"Expense ID: {expense_id}, Category: {category_id}, Amount: ${amount:.2f}, Date: {date}, Description: {description}")
+    else:
+        print("No purchases found for the most recent month.")
+
+
+monthUserPurchases()
 
 # To send changes to DB
 connection.commit()
