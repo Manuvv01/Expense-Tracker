@@ -5,14 +5,25 @@ connection = sqlite3.connect('Database for Expense tracker.db')
 cursor = connection.cursor()
 print('Database Initialized')
 
-def show_Users():
+def showAllUsers():
     cursor.execute("SELECT rowid, * FROM Users")
     people = cursor.fetchall()
     
     for person in people:
         print(f"{person}")
 
-show_Users()
+def showGroupusers():
+    num = str(input("Enter group num: "))
+    
+    cursor.execute("SELECT * FROM Users WHERE group_num = (?)", num)
+    people = cursor.fetchall()
+    
+    for person in people:
+        print(f"{person}")
+
+showGroupusers()
+print()
+
 # To send changes to DB
 connection.commit()
 
