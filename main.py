@@ -35,13 +35,17 @@ def createNewGroup():
     userID = getHighestUserID() + 1
     cursor.execute("INSERT INTO Users VALUES (?,?,?,?)", (userID , user, password, groupNum))
     
-    
-    
-    
-createNewGroup()  
-print()
-showGroupusers()
+def joinGroup():
+    groupNum = input("Enter the number of the group you wish to join: ")
+    user = input("Enter your username: ")
+    password = input("Enter your password: ")
+    userID = getHighestUserID() + 1
+    cursor.execute("INSERT INTO Users VALUES (?,?,?,?)", (userID , user, password, groupNum))
 
+    
+joinGroup()
+print()
+showGroupusers()    
 
 # To send changes to DB
 connection.commit()
