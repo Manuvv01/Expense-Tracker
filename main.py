@@ -1,23 +1,13 @@
 import sqlite3
-try:
-    connection = sqlite3.connect('Database for Expense tracker.db')
-    cursor = connection.cursor()
-    print('Database Initialized')
 
-    query = 'select sqlite_version();'
-    cursor.execute(query)
+connection = sqlite3.connect('Database for Expense tracker.db')
+cursor = connection.cursor()
+print('Database Initialized')
 
-    result = cursor.fetchall()
-    print('SQLite version is {}'.format(result))
-
-    cursor.close()
-    
-except sqlite3.Error as error:
-    print('Error occured - ', error)
-    
-finally:
-   
-    if connection:
-        connection.close()
-        print('SQLite Connection closed')
+cursor.execute("INSERT INTO Users VALUES('1','rizeta5','password')")
+cursor.execute("INSERT INTO Users VALUES('2','dbejar','Kirby19')")
+print(cursor.fetchall)
+cursor.close()
+connection.close()
+print('SQLite Connection closed')
 
