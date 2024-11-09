@@ -42,10 +42,21 @@ def joinGroup():
     userID = getHighestUserID() + 1
     cursor.execute("INSERT INTO Users VALUES (?,?,?,?)", (userID , user, password, groupNum))
 
-    
-joinGroup()
-print()
-showGroupusers()    
+def splitPurchase():
+    num = str(input("Enter group num: "))
+    purchase_amount = float(input("Enter total purchase amount: "))
+
+    cursor.execute("SELECT COUNT(*) FROM Users WHERE group_num = (?)", (num,))
+    count = cursor.fetchone()[0]
+
+    if count > 0:
+        split_amount = purchase_amount / count
+        print(f"Total members in group {num}: {count}")
+        print(f"Each member should pay: ${split_amount:.2f}")
+    else:
+        print(f"No members found in group {num}.")
+
+splitPurchase() 
 
 # To send changes to DB
 connection.commit()
