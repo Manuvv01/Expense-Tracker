@@ -4,9 +4,9 @@ connection = sqlite3.connect('Database for Expense tracker.db')
 cursor = connection.cursor()
 print('Database Initialized')
 
-cursor.execute("INSERT INTO Users VALUES('1','rizeta5','password')")
-cursor.execute("INSERT INTO Users VALUES('2','dbejar','Kirby19')")
-print(cursor.fetchall)
+
+connection.commit()
+
 cursor.close()
 connection.close()
 print('SQLite Connection closed')
