@@ -109,8 +109,36 @@ def monthUserPurchases():
     else:
         print("No purchases found for the most recent month.")
 
+def main_menu():
+    while True:
+        print("\n--- Expense Tracker Menu ---")
+        print("1. Create new group")
+        print("2. Join existing group")
+        print("3. Split group purchase")
+        print("4. User breakdown of expenses")
+        print("5. User monthly breakdown of expenses")
+        print("6. Quit")
+        
+        choice = input("Please select an option (1-6): ")
 
-monthUserPurchases()
+        if choice == "1":
+            createNewGroup()
+        elif choice == "2":
+            joinGroup()
+        elif choice == "3":
+            splitPurchase()
+        elif choice == "4":
+            userPurchases()
+        elif choice == "5":
+            monthUserPurchases()
+        elif choice == "6":
+            print("Exiting the program.")
+            break
+        else:
+            print("Invalid choice. Please enter a number from 1 to 6.")
+
+# Start the program
+main_menu()
 
 # To send changes to DB
 connection.commit()
