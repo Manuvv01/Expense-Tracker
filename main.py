@@ -45,7 +45,6 @@ def joinGroup():
 def splitPurchase():
     num = str(input("Enter group num: "))
     purchase_amount = float(input("Enter total purchase amount: "))
-
     cursor.execute("SELECT COUNT(*) FROM Users WHERE group_num = (?)", (num,))
     count = cursor.fetchone()[0]
 
