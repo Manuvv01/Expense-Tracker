@@ -55,7 +55,33 @@ def splitPurchase():
     else:
         print(f"No members found in group {num}.")
 
-splitPurchase() 
+def getUserID():
+    user = input("Enter your username: ")
+    cursor.execute("SELECT user_id FROM Users WHERE username = ?", (user,))
+    result = cursor.fetchone()
+    if result:
+        return result[0]
+    else:
+        print("Username not found.")
+        return None
+
+def userPurchases():
+    user = getUserID()
+    cursor.execute("""
+            SELECT expense_id, category_id, amount, date, description 
+            FROM Expenses 
+            WHERE user_id = ?
+            ORDER BY date DESC
+        """, (user,))
+    purchases = cursor.fetchall()
+    if purchases:
+        print(f"\nPurchases made by User ID {user}:")
+        for expense_id, category_id, amount, date, description in purchases:
+            print(f"Expense ID: {expense_id}, Category: {category_id}, Amount: ${amount:.2f}, Date: {date}, Description: {description}")
+    else:
+        print("No purchases found for this user.")
+
+userPurchases()
 
 # To send changes to DB
 connection.commit()
