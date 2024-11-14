@@ -49,13 +49,18 @@ def showAllUsers():
     for person in people:
         print(f"{person}")
 
-def showGroupUsers():
-    num = input("Enter group number: ")
-    cursor.execute("SELECT * FROM Users WHERE group_num = ?", (num,))
+def showGroupusers(groupNum = None):
+    if groupNum is None:
+        groupNum = input("Enter group num: ")
+    cursor.execute("SELECT * FROM Users WHERE group_num = ?", (groupNum,))
     people = cursor.fetchall()
-    for person in people:
-        print(f"{person}")
-
+    if people:
+        print(f"\nMembers of Group {groupNum}:")
+        for person in people:
+            print(person)
+    else:
+        print(f"No members found in Group {groupNum}.")
+   
 def getHighestGroup():
     cursor.execute("SELECT MAX(group_num) FROM Users")
     highGroupNum = cursor.fetchone()[0]
@@ -71,13 +76,8 @@ def createNewGroup():
     password = input("Enter your password: ")
     groupNum = getHighestGroup() + 1
     userID = getHighestUserID() + 1
-    try:
-        cursor.execute("INSERT INTO Users VALUES (?, ?, ?, ?)", (userID, username, password, groupNum))
-        connection.commit()
-        print(f"New group {groupNum} created successfully!")
-    except sqlite3.IntegrityError:
-        print("Error creating a new group. Please try again.")
-
+    cursor.execute("INSERT INTO Users VALUES (?,?,?,?)", (userID , user, password, groupNum))
+    
 def joinGroup():
     groupNum = input("Enter the number of the group you wish to join: ")
     username = input("Enter your username: ")
@@ -90,12 +90,7 @@ def joinGroup():
         return
 
     userID = getHighestUserID() + 1
-    try:
-        cursor.execute("INSERT INTO Users VALUES (?, ?, ?, ?)", (userID, username, password, groupNum))
-        connection.commit()
-        print(f"User {username} joined group {groupNum} successfully!")
-    except sqlite3.IntegrityError:
-        print("Error joining the group. Please try again.")
+    cursor.execute("INSERT INTO Users VALUES (?,?,?,?)", (userID , user, password, groupNum))
 
 def splitPurchase():
     groupNum = input("Enter group number: ")
