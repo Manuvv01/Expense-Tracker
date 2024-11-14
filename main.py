@@ -1,10 +1,47 @@
 import sqlite3
+import os
 from datetime import datetime
 
 # Connect to DB
 connection = sqlite3.connect('Database for Expense tracker.db')
 cursor = connection.cursor()
+
 print('Database Initialized')
+
+if os.path.exists('Database for Expense tracker.db'):
+    pass
+
+while True:
+    createOrLog = input("Enter 1 to create an account, 2 to log in, or 0 to exit: ")
+
+    if createOrLog == "1":
+        username = input("Enter account username: ")
+        password = input("Enter account password: ")
+        try:
+            cursor.execute("INSERT INTO Users (username, password) VALUES (?, ?)", [username, password])
+            connection.commit()
+            print("Account successfully created!")
+        except sqlite3.IntegrityError:
+            print("Username already exists. Please try a different one.")
+
+    elif createOrLog == "2":
+        username = input("Enter username: ")
+        password = input("Enter password: ")
+
+        cursor.execute("SELECT * FROM Users WHERE username=? AND password=?", [username, password])
+        user = cursor.fetchone()
+
+        if user:
+            print("Logged in successfully!")
+            break
+        else:
+            print("Incorrect username or password. Please try again.")
+
+    elif createOrLog == "0":
+        print("Exiting program.")
+        break
+    else:
+        print("Invalid option. Please enter 1, 2, or 0.")
 
 def showAllUsers():
     cursor.execute("SELECT rowid, * FROM Users")
@@ -12,53 +49,69 @@ def showAllUsers():
     for person in people:
         print(f"{person}")
 
-def showGroupusers():
-    num = str(input("Enter group num: "))
-    cursor.execute("SELECT * FROM Users WHERE group_num = (?)", num)
+def showGroupUsers():
+    num = input("Enter group number: ")
+    cursor.execute("SELECT * FROM Users WHERE group_num = ?", (num,))
     people = cursor.fetchall()
     for person in people:
         print(f"{person}")
 
 def getHighestGroup():
-    cursor.execute("SELECT * FROM Users ORDER BY group_num DESC")
-    highGroupNum = cursor.fetchone()[3]
-    return highGroupNum
+    cursor.execute("SELECT MAX(group_num) FROM Users")
+    highGroupNum = cursor.fetchone()[0]
+    return highGroupNum if highGroupNum else 0
 
 def getHighestUserID():
-    cursor.execute("SELECT * FROM Users ORDER BY user_id DESC")
+    cursor.execute("SELECT MAX(user_id) FROM Users")
     highUserID = cursor.fetchone()[0]
-    return highUserID
+    return highUserID if highUserID else 0
 
 def createNewGroup():
-    user = input("Enter your username: ")
+    username = input("Enter your username: ")
     password = input("Enter your password: ")
     groupNum = getHighestGroup() + 1
     userID = getHighestUserID() + 1
-    cursor.execute("INSERT INTO Users VALUES (?,?,?,?)", (userID , user, password, groupNum))
-    
+    try:
+        cursor.execute("INSERT INTO Users VALUES (?, ?, ?, ?)", (userID, username, password, groupNum))
+        connection.commit()
+        print(f"New group {groupNum} created successfully!")
+    except sqlite3.IntegrityError:
+        print("Error creating a new group. Please try again.")
+
 def joinGroup():
     groupNum = input("Enter the number of the group you wish to join: ")
-    user = input("Enter your username: ")
+    username = input("Enter your username: ")
     password = input("Enter your password: ")
+
+    # Validate that the group exists
+    cursor.execute("SELECT 1 FROM Users WHERE group_num = ?", (groupNum,))
+    if not cursor.fetchone():
+        print(f"Group {groupNum} does not exist.")
+        return
+
     userID = getHighestUserID() + 1
-    cursor.execute("INSERT INTO Users VALUES (?,?,?,?)", (userID , user, password, groupNum))
+    try:
+        cursor.execute("INSERT INTO Users VALUES (?, ?, ?, ?)", (userID, username, password, groupNum))
+        connection.commit()
+        print(f"User {username} joined group {groupNum} successfully!")
+    except sqlite3.IntegrityError:
+        print("Error joining the group. Please try again.")
 
 def splitPurchase():
-    num = str(input("Enter group num: "))
+    groupNum = input("Enter group number: ")
     purchase_amount = float(input("Enter total purchase amount: "))
-    cursor.execute("SELECT COUNT(*) FROM Users WHERE group_num = (?)", (num,))
+    cursor.execute("SELECT COUNT(*) FROM Users WHERE group_num = ?", (groupNum,))
     count = cursor.fetchone()[0]
 
     if count > 0:
         split_amount = purchase_amount / count
-        print(f"Total members in group {num}: {count}")
+        print(f"Total members in group {groupNum}: {count}")
         print(f"Each member should pay: ${split_amount:.2f}")
     else:
-        print(f"No members found in group {num}.")
+        print(f"No members found in group {groupNum}.")
 
-def getUserID():
-    user = input("Enter your username: ")
-    cursor.execute("SELECT user_id FROM Users WHERE username = ?", (user,))
+def getUserID(username):
+    cursor.execute("SELECT user_id FROM Users WHERE username = ?", (username,))
     result = cursor.fetchone()
     if result:
         return result[0]
@@ -67,47 +120,61 @@ def getUserID():
         return None
 
 def userPurchases():
-    user = getUserID()
-    cursor.execute("""
+    username = input("Enter your username: ")
+    user = getUserID(username)
+
+    if user:
+        cursor.execute("""
             SELECT expense_id, category_id, amount, date, description 
             FROM Expenses 
             WHERE user_id = ?
             ORDER BY date DESC
         """, (user,))
-    purchases = cursor.fetchall()
-    if purchases:
-        print(f"\nPurchases made by User ID {user}:")
-        for expense_id, category_id, amount, date, description in purchases:
-            print(f"Expense ID: {expense_id}, Category: {category_id}, Amount: ${amount:.2f}, Date: {date}, Description: {description}")
-    else:
-        print("No purchases found for this user.")
+        purchases = cursor.fetchall()
+
+        if purchases:
+            print(f"\nPurchases made by {username}:")
+            for expense_id, category_id, amount, date, description in purchases:
+                print(f"Expense ID: {expense_id}, Category: {category_id}, Amount: ${amount:.2f}, Date: {date}, Description: {description}")
+        else:
+            print("No purchases found for this user.")
 
 def monthUserPurchases():
-    user = getUserID()
-    cursor.execute("""
+    username = input("Enter your username: ")
+    user = getUserID(username)
+
+    if user:
+        cursor.execute("""
             SELECT date 
             FROM Expenses 
             WHERE user_id = ?
             ORDER BY date DESC 
             LIMIT 1
-            """, (user,))
-    recent_date_row = cursor.fetchone()
-    recent_date = datetime.strptime(recent_date_row[0], '%Y-%m-%d')
-    recent_year = recent_date.year
-    recent_month = recent_date.month
-    cursor.execute("""
-        SELECT expense_id, category_id, amount, date, description 
-        FROM Expenses 
-        WHERE user_id = ? AND strftime('%Y', date) = ? AND strftime('%m', date) = ?
-        ORDER BY date DESC
+        """, (user,))
+        recent_date_row = cursor.fetchone()
+
+        if not recent_date_row:
+            print("No expenses found for this user.")
+            return
+
+        recent_date = datetime.strptime(recent_date_row[0], '%Y-%m-%d')
+        recent_year = recent_date.year
+        recent_month = recent_date.month
+
+        cursor.execute("""
+            SELECT expense_id, category_id, amount, date, description 
+            FROM Expenses 
+            WHERE user_id = ? AND strftime('%Y', date) = ? AND strftime('%m', date) = ?
+            ORDER BY date DESC
         """, (user, str(recent_year), f"{recent_month:02}"))
-    expenses = cursor.fetchall()
-    if expenses:
-        print(f"\nPurchases made by User ID {user} in {recent_date.strftime('%B %Y')}:")
-        for expense_id, category_id, amount, date, description in expenses:
-            print(f"Expense ID: {expense_id}, Category: {category_id}, Amount: ${amount:.2f}, Date: {date}, Description: {description}")
-    else:
-        print("No purchases found for the most recent month.")
+        expenses = cursor.fetchall()
+
+        if expenses:
+            print(f"\nPurchases made by {username} in {recent_date.strftime('%B %Y')}:")
+            for expense_id, category_id, amount, date, description in expenses:
+                print(f"Expense ID: {expense_id}, Category: {category_id}, Amount: ${amount:.2f}, Date: {date}, Description: {description}")
+        else:
+            print("No purchases found for the most recent month.")
 
 def main_menu():
     while True:
@@ -140,11 +207,8 @@ def main_menu():
 # Start the program
 main_menu()
 
-# To send changes to DB
+# Commit changes and close DB
 connection.commit()
-
-# To close DB
 cursor.close()
 connection.close()
-print('SQLite Connection closed')
-
+print('SQLite Connection closed.')
