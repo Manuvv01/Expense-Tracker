@@ -62,7 +62,53 @@ def login_or_create_account():
 
 def is_user_logged_in():
     return 'user_id' in user_session
-    
+def enterExpense():
+    os.system('cls')
+    user_id = user_session['user_id']
+    while True:
+
+        amountInput = input("Enter amount of purchase: ")
+        try:
+            amount = float(amountInput)
+            if amount < 0:
+                print("The amount entered should be positive, please try again.")
+                continue
+            break
+        except ValueError:
+            print("Please enter a number, do not use letters.")
+                
+    while True:
+        Newdate = input("Enter the date of purchase (YYYY-MM-DD): ")
+        try:
+                datetime.strptime(Newdate, '%Y-%m-%d')
+        except ValueError:
+            print("Invalid date format. Please enter the date as YYYY-MM-DD.")
+            break
+        description = input("Enter description of purchase(gas, food,etc...): ")
+
+        while True:
+            category_options = {
+                "1": "food",
+                "2": "gas",
+                "3": "transportation",
+                "4": "shopping",
+                "5": "subscriptions"
+                }
+
+            category_id = input("Enter a category for this expense:\n1. food\n2. gas\n3. transportation\n4. shopping\n5. subscriptions\n")
+            if category_id in category_options:
+                category = category_options[category_id]
+                break
+            else:
+                print("Invalid category id. Please enter a category ID that would fit the description")
+
+            user_id = user_session['user_id']
+            cursor.execute("INSERT INTO Expenses (user_id, amount, date, description, category_id) VALUES (?, ?, ?, ?, ?)",(user_id, amount, Newdate, description, category,))
+            connection.commit()
+
+            print("New expense has been added successfully!")
+            break
+
 def showGroupUsers():
     os.system('cls')
     group_num = user_session['group_num']
@@ -104,12 +150,11 @@ def monthUserPurchases():
     os.system('cls')
     user_id = user_session['user_id']
 
-    cursor.execute("SELECT date FROM Expenses WHERE user_id=? ORDER BY date DESC LIMIT 1", (user_id,))
+    cursor.execute("SELECT date FROM Expenses WHERE user_id=? ORDER BY date DESC", (user_id,))
     recent_date_row = cursor.fetchone()
 
     if not recent_date_row:
         print("No expenses found for this user.")
-        return
     
     recent_date = datetime.strptime(recent_date_row[0], '%Y-%m-%d')
     recent_year = recent_date.year
@@ -119,54 +164,55 @@ def monthUserPurchases():
         SELECT amount, date, description 
         FROM Expenses 
         WHERE user_id = ? 
-        AND strftime('%Y', date) = ? 
-        AND strftime('%m', date) = ? 
+        AND strftime('%Y', date) = ?
+        AND strftime('%m', date) = ?
         ORDER BY date DESC
     """, (user_id, str(recent_year), f"{recent_month:02}"))
     expenses = cursor.fetchall()
     
     if expenses:
-        print(f"\nPurchases made by {user_session['username']} in {recent_date.strftime('%B %Y')}:")
+        print(f"\nPurchases made by {user_session['username']} for the most recent dates:\n----------------------------------------------------")
         for amount, date, description in expenses:
+            print(f"In {recent_date.strftime('%B %Y')}:")
             print(f"Amount: ${amount:.2f}, Date: {date}, Description: {description} \n----------------------------------------------------")
             
     else:
-        print("No purchases found for the most recent month.")
+        print("No purchases found for the most recent months.")
     
 def main_menu():
     while True:
         print("\n--- Expense Tracker Menu ---")
         print(f"Logged in as: {user_session.get('username', 'Unknown')}")
-        print("1. Show group members")
-        print("2. Split group purchase")
-        print("3. View user purchases")
-        print("4. View user monthly purchases")
-        print("5. Quit")
+        print("1. Enter New Expense")
+        print("2. Show group members")
+        print("3. Split group purchase")
+        print("4. View user purchases")
+        print("5. View user monthly purchases")
+        print("6. Quit")
 
-        choice = input("Please select an option (1-5): ")
+        choice = input("Please select an option (1-6): ")
 
         if choice == "1":
             os.system('cls')
-            os.system('cls')
-            showGroupUsers()
+            enterExpense()
 
         elif choice == "2":
             os.system('cls')
-            os.system('cls')
-            splitPurchase()
+            showGroupUsers()
 
         elif choice == "3":
             os.system('cls')
-            os.system('cls')
-            userPurchases()
+            splitPurchase()
 
         elif choice == "4":
             os.system('cls')
+            userPurchases()
+
+        elif choice == "5":
             os.system('cls')
             monthUserPurchases()
             
-        elif choice == "5":
-            os.system('cls')
+        elif choice == "6":
             os.system('cls')
             print("Exiting the program.")
             break 
