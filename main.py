@@ -140,7 +140,7 @@ def showGroupUsers():
     if people:
         print(f"Users in your group ({group_num}):")
         for person in people:
-            print(f"- {person[0]}")
+            print(f"- {person[1]}")
     else:
         print(f"No members found in group {group_num}.")
 
@@ -215,7 +215,7 @@ def monthUserPurchases():
     
 def main_menu():
     while True:
-        print("\n--- Expense Tracker Menu ---")
+        print("--- Expense Tracker Menu ---")
         print(f"Logged in as: {user_session.get('username', 'Unknown')}")
         print("1. Enter New Expense")
         print("2. Show group members")
