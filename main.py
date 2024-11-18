@@ -72,42 +72,51 @@ def enterExpense():
             amount = float(amountInput)
             if amount < 0:
                 print("The amount entered should be positive, please try again.")
-                continue
-            break
+            else:
+                break
         except ValueError:
             print("Please enter a number, do not use letters.")
-                
+            return
     while True:
         Newdate = input("Enter the date of purchase (YYYY-MM-DD): ")
         try:
-                datetime.strptime(Newdate, '%Y-%m-%d')
+            datetime.strptime(Newdate, '%Y-%m-%d')
+            break
+            
         except ValueError:
             print("Invalid date format. Please enter the date as YYYY-MM-DD.")
+            
+
+    description = input("Enter description of purchase(gas, food,etc...): ")
+
+    while True:
+        category_options = {
+            "1": "food",
+            "2": "gas",
+            "3": "transportation",
+            "4": "shopping",
+            "5": "subscriptions"
+            }
+
+        category_id = input("Enter a category for this expense:\n1. food\n2. gas\n3. transportation\n4. shopping\n5. subscriptions\n")
+
+        if category_id in category_options:
+            category = int(category_id)
             break
-        description = input("Enter description of purchase(gas, food,etc...): ")
 
-        while True:
-            category_options = {
-                "1": "food",
-                "2": "gas",
-                "3": "transportation",
-                "4": "shopping",
-                "5": "subscriptions"
-                }
+        else:
+            print("Invalid category. Please enter a category that would fit the description")
 
-            category_id = input("Enter a category for this expense:\n1. food\n2. gas\n3. transportation\n4. shopping\n5. subscriptions\n")
-            if category_id in category_options:
-                category = category_options[category_id]
-                break
-            else:
-                print("Invalid category id. Please enter a category ID that would fit the description")
+    try:
+        cursor.execute("INSERT INTO Expenses (user_id, amount, date, description, category_id) VALUES (?, ?, ?, ?, ?)",
+        (user_id, amount, Newdate, description, category,)
+        )
+        connection.commit()
+        print("New expense has been added successfully!")
 
-            user_id = user_session['user_id']
-            cursor.execute("INSERT INTO Expenses (user_id, amount, date, description, category_id) VALUES (?, ?, ?, ?, ?)",(user_id, amount, Newdate, description, category,))
-            connection.commit()
-
-            print("New expense has been added successfully!")
-            break
+    except sqlite3.Error as e:
+        print(f"An unexpected error has occured while trying to add your new expense. Please try again: {e}")
+            
 
 def showGroupUsers():
     os.system('cls')
