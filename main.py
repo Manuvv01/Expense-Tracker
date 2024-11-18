@@ -23,16 +23,22 @@ def login_or_create_account():
         if createOrLog == "1":
             username = input("Enter account username: ")
             password = input("Enter account password: ")
-
-            os.system('cls')
+            group = input("Please enter the group ID to enter a shared expense. If you do not wish to enter a group just hit enter")
 
             try:
-                cursor.execute("INSERT INTO Users (username, password) VALUES (?, ?)", [username, password])
+                groupNum = int(group) if group else None
+            except ValueError:
+                print("Wrong group ID or decided to not join any group.(You will be able to join a group when you sign in)")
+                groupNum = None
+            try:
+                cursor.execute("INSERT INTO Users (username, password, group_num) VALUES (?, ?, ?)", [username, password, groupNum])
                 connection.commit()
                 print("Account successfully created!")
+                os.system('cls')
 
             except sqlite3.IntegrityError:
                 print("Username already exists. Please try a different one.")
+                os.system('cls')
 
         elif createOrLog == "2":
             username = input("Enter username: ")
@@ -62,6 +68,7 @@ def login_or_create_account():
 
 def is_user_logged_in():
     return 'user_id' in user_session
+
 def enterExpense():
     os.system('cls')
     user_id = user_session['user_id']
@@ -120,15 +127,33 @@ def enterExpense():
 
 def showGroupUsers():
     os.system('cls')
+
     group_num = user_session['group_num']
+    if group_num is None:
+
+        print("You are not a part of any group")
+        return
+
     cursor.execute("SELECT * FROM Users WHERE group_num = ?", (group_num,))
     people = cursor.fetchall()
-    print(f"Users in your group ({group_num}):")
-    for person in people:
-        print(f"{person}")
+
+    if people:
+        print(f"Users in your group ({group_num}):")
+        for person in people:
+            print(f"- {person[0]}")
+    else:
+        print(f"No members found in group {group_num}.")
+
 def splitPurchase():
     os.system('cls')
+
     group_num = user_session['group_num']
+    
+    if group_num is None:
+
+        print("You are not a part of any group")
+        return
+        
     purchase_amount = float(input("Enter total purchase amount: "))
     cursor.execute("SELECT COUNT(*) FROM Users WHERE group_num = ?", (group_num,))
     count = cursor.fetchone()[0]
@@ -228,7 +253,7 @@ def main_menu():
             
         else:
             os.system('cls')
-            print("Invalid choice. Please enter a number from 1 to 5.")
+            print("Invalid choice. Please enter a number from 1 to 6.")
             
 login_or_create_account()
 
