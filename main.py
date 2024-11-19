@@ -47,6 +47,7 @@ def login_or_create_account():
             cursor.execute("SELECT * FROM Users WHERE username=? AND password=?", [username, password])
             user = cursor.fetchone()
             os.system('cls')
+
             if user:
                 print("Logged in successfully!")
                 os.system('cls')
@@ -123,8 +124,37 @@ def enterExpense():
 
     except sqlite3.Error as e:
         print(f"An unexpected error has occured while trying to add your new expense. Please try again: {e}")
-            
+def createGroup():
+    
+def joinGroup():
+    os.system('cls')
+    user_id = user_session['user_id']
 
+    while True:
+        try:
+            groups = input("Enter the Group number you want to enter: ")
+            groupNum = int(groups)
+
+            cursor.execute("Select 1 FROM Users WHERE group_num = ? LIMIT 1", (groupNum,))
+            if not cursor.fetchone():
+
+                print(f"Group {groupNum} does not exist. Please try again or create a group")
+                continue
+
+            cursor.execute("UPDATE Users SET group_num = ? WHERE user_id= ?", (groupNum, user_id))
+            connection.commit()
+
+            user_session['group_num'] = groupNum
+            print(f"You have succesfully joined the {groupNum}.")
+            break
+
+        except ValueError:
+            print("Wrong Group ID. Please try again.")
+
+        except sqlite3.Error as e:
+            print(f"Group number does not exist. Please enter a valid group number.{e}")
+            return
+    
 def showGroupUsers():
     os.system('cls')
 
@@ -140,7 +170,7 @@ def showGroupUsers():
     if people:
         print(f"Users in your group ({group_num}):")
         for person in people:
-            print(f"- {person[0]}")
+            print(f"- {person[1]}")
     else:
         print(f"No members found in group {group_num}.")
 
@@ -215,16 +245,17 @@ def monthUserPurchases():
     
 def main_menu():
     while True:
-        print("\n--- Expense Tracker Menu ---")
+        print("--- Expense Tracker Menu ---")
         print(f"Logged in as: {user_session.get('username', 'Unknown')}")
         print("1. Enter New Expense")
-        print("2. Show group members")
-        print("3. Split group purchase")
-        print("4. View user purchases")
-        print("5. View user monthly purchases")
-        print("6. Quit")
+        print("2. Join group")
+        print("3. Show group members")
+        print("4. Split group purchase")
+        print("5. View user purchases")
+        print("6. View user monthly purchases")
+        print("7. Quit")
 
-        choice = input("Please select an option (1-6): ")
+        choice = input("Please select an option (1-7): ")
 
         if choice == "1":
             os.system('cls')
@@ -232,28 +263,32 @@ def main_menu():
 
         elif choice == "2":
             os.system('cls')
-            showGroupUsers()
+            joinGroup()
 
         elif choice == "3":
             os.system('cls')
-            splitPurchase()
+            showGroupUsers()
 
         elif choice == "4":
             os.system('cls')
-            userPurchases()
+            splitPurchase()
 
         elif choice == "5":
             os.system('cls')
+            userPurchases()
+
+        elif choice == "6":
+            os.system('cls')
             monthUserPurchases()
             
-        elif choice == "6":
+        elif choice == "7":
             os.system('cls')
             print("Exiting the program.")
             break 
             
         else:
             os.system('cls')
-            print("Invalid choice. Please enter a number from 1 to 6.")
+            print("Invalid choice. Please enter a number from 1 to 7.")
             
 login_or_create_account()
 
