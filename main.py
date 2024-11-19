@@ -125,6 +125,7 @@ def enterExpense():
     except sqlite3.Error as e:
         print(f"An unexpected error has occured while trying to add your new expense. Please try again: {e}")
 def createGroup():
+    pass
     
 def joinGroup():
     os.system('cls')
