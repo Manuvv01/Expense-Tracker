@@ -125,7 +125,32 @@ def enterExpense():
     except sqlite3.Error as e:
         print(f"An unexpected error has occured while trying to add your new expense. Please try again: {e}")
 def createGroup():
-    pass
+    os.system('cls')
+    user_id = user_session['user_id']
+
+    while True:
+        try:
+            newGroup = input("Enter a number with which you will create a group: ")
+            groupNum = int(newGroup)
+
+            cursor.execute("Select 1 FROM Users WHERE group_num = ? LIMIT 1", (groupNum,))
+            if cursor.fetchone():
+                print(f"Group {groupNum} already exists. Please try another number")
+                continue
+            
+            cursor.execute("UPDATE Users SET group_num = ? WHERE user_id = ?", (groupNum, user_id))
+            connection.commit()
+
+            user_session["group_num"] = groupNum
+            print(f"You have succesfully joined the {groupNum}.")
+            break
+
+        except ValueError:
+            print("Wrong Group ID. Please try again.")
+
+        except sqlite3.Error as e:
+            print(f"Group number does not exist. Please enter a valid group number.{e}")
+            return
     
 def joinGroup():
     os.system('cls')
@@ -136,12 +161,6 @@ def joinGroup():
             groups = input("Enter the Group number you want to enter: ")
             groupNum = int(groups)
 
-            cursor.execute("Select 1 FROM Users WHERE group_num = ? LIMIT 1", (groupNum,))
-            if not cursor.fetchone():
-
-                print(f"Group {groupNum} does not exist. Please try again or create a group")
-                continue
-
             cursor.execute("UPDATE Users SET group_num = ? WHERE user_id= ?", (groupNum, user_id))
             connection.commit()
 
@@ -150,10 +169,10 @@ def joinGroup():
             break
 
         except ValueError:
-            print("Wrong Group ID. Please try again.")
+            print("Wrong input. Please try again")
 
         except sqlite3.Error as e:
-            print(f"Group number does not exist. Please enter a valid group number.{e}")
+            print(f"Group number does not exist or you are in this group already. Please enter a valid group number.{e}")
             return
     
 def showGroupUsers():
@@ -249,14 +268,15 @@ def main_menu():
         print("--- Expense Tracker Menu ---")
         print(f"Logged in as: {user_session.get('username', 'Unknown')}")
         print("1. Enter New Expense")
-        print("2. Join group")
-        print("3. Show group members")
-        print("4. Split group purchase")
-        print("5. View user purchases")
-        print("6. View user monthly purchases")
-        print("7. Quit")
+        print("2. Create group")
+        print("3. Join group")
+        print("4. Show group members")
+        print("5. Split group purchase")
+        print("6. View user purchases")
+        print("7. View user monthly purchases")
+        print("8. Quit")
 
-        choice = input("Please select an option (1-7): ")
+        choice = input("Please select an option (1-8): ")
 
         if choice == "1":
             os.system('cls')
@@ -264,32 +284,36 @@ def main_menu():
 
         elif choice == "2":
             os.system('cls')
-            joinGroup()
+            createGroup()
 
         elif choice == "3":
             os.system('cls')
-            showGroupUsers()
+            joinGroup()
 
         elif choice == "4":
             os.system('cls')
-            splitPurchase()
+            showGroupUsers()
 
         elif choice == "5":
             os.system('cls')
-            userPurchases()
+            splitPurchase()
 
         elif choice == "6":
             os.system('cls')
+            userPurchases()
+
+        elif choice == "7":
+            os.system('cls')
             monthUserPurchases()
             
-        elif choice == "7":
+        elif choice == "8":
             os.system('cls')
             print("Exiting the program.")
             break 
             
         else:
             os.system('cls')
-            print("Invalid choice. Please enter a number from 1 to 7.")
+            print("Invalid choice. Please enter a number from 1 to 8.")
             
 login_or_create_account()
 
